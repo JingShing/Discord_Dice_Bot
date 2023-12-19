@@ -33,7 +33,8 @@ async def on_ready():
 async def on_message(message):
     if message.author == client.user:
         return
-
+        
+    # dice functions
     if "創角" == message.content:
         character_info = ""
         stats = ["STR","DEX","CON","POW","APP","SIZ","INT","EDU","LUK"]
@@ -60,11 +61,11 @@ async def on_message(message):
                 return
 
             results = [random.randint(1, dice_faces) for _ in range(num_dice)]
-
-            if len(results) <= 30:
-                await message.reply(f'骰出了 {num_dice} 個 {dice_faces} 面骰，結果： {", ".join(map(str, results))}，總和{sum(results)}')
-            else:
-                await message.reply(f'骰出了 {num_dice} 個 {dice_faces} 面骰，結果： 省略，總和{sum(results)}')
+            number = sum(results)
+            all_dice_result = "省略"
+            if num_dice <= 30:
+                all_dice_result = ", ".join(map(str, results))
+            await message.reply(f'骰出了 {num_dice} 個 {dice_faces} 面骰，結果： {all_dice_result}，總和{number}')
 
         elif match_calc:
             num_dice = int(match_calc.group(1))
@@ -78,11 +79,14 @@ async def on_message(message):
 
             results = [random.randint(1, dice_faces) for _ in range(num_dice)]
             result_sum = sum(results)
+            all_dice_result = "省略"
+            if num_dice <= 30:
+                all_dice_result = ", ".join(map(str, results))
             if operand == "/" and modifier == 0:
                 await message.reply("不要除零啦！")
             else:
                 calculated_result = operators[operand](result_sum, modifier)
-                await message.reply(f'骰出了 {num_dice} 個 {dice_faces} 面骰，結果： {", ".join(map(str, results))}，總和{result_sum}，計算結果{calculated_result}')
+                await message.reply(f'骰出了 {num_dice} 個 {dice_faces} 面骰，結果： {all_dice_result}，總和{result_sum}，計算結果{calculated_result}')
 
         elif match_conditional:
             num_dice = int(match_conditional.group(1))
@@ -124,10 +128,13 @@ async def on_message(message):
                 else:
                     detect_operand = False
 
+            all_dice_result = "省略"
+            if num_dice <= 30:
+                all_dice_result = ", ".join(map(str, results))
             if detect_operand:
-                await message.reply(f'骰出了 {num_dice} 個 {dice_faces} 面骰，結果： {", ".join(map(str, results))}，總和{result_sum}，判定成功')
+                await message.reply(f'骰出了 {num_dice} 個 {dice_faces} 面骰，結果： {all_dice_result}，總和{result_sum}，判定成功')
             else:
-                await message.reply(f'骰出了 {num_dice} 個 {dice_faces} 面骰，結果： {", ".join(map(str, results))}，總和{result_sum}，判定失敗')
+                await message.reply(f'骰出了 {num_dice} 個 {dice_faces} 面骰，結果： {all_dice_result}，總和{result_sum}，判定失敗')
 
         elif match_skill:
             words = message.content.split(" ")
@@ -179,6 +186,12 @@ async def on_message(message):
                     await message.reply(f'## (骰值{dice_result}>SAN{roll_value})：大失敗！：扣{p2}，剩餘{roll_value-p2}')
                 else:
                     await message.reply(f'(骰值{dice_result}>SAN{roll_value})：失敗！：扣{p2}，剩餘{roll_value-p2}')
+
+def digit_count(number:int)->int:
+    return len(str(number))
+
+def format_to_e(number:int):
+    return format(number, "e")
 
 def penalty_calculate(p:str, all_fail = False)->int:
     if "d" in p:
